@@ -1,0 +1,44 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    gateway:
+      routes:
+        - id: senfanoj-backend-user-service
+          uri: lb://senfanoj-backend-user-service
+          predicates:
+            - Path=/api/user/**
+        - id: senfanoj-backend-question-service
+          uri: lb://senfanoj-backend-question-service
+          predicates:
+            - Path=/api/question/**
+        - id: senfanoj-backend-judge-service
+          uri: lb://senfanoj-backend-judge-service
+          predicates:
+            - Path=/api/judge/**
+  application:
+    name: senfanoj-backend-gateway
+  main:
+    web-application-type: reactive
+  mvc:
+    static-path-pattern: /**
+server:
+  port: 8101
+  servlet:
+    # cookie 30 ???
+    session:
+      cookie:
+        max-age: 2592000
+        path: /api
+knife4j:
+  gateway:
+    # ① 第一个配置，开启gateway聚合组件
+    enabled: true
+    # ② 第二行配置，设置聚合模式采用discover服务发现的模式
+    strategy: discover
+    discover:
+      # ③ 第三行配置，开启discover模式
+      enabled: true
+      # ④ 第四行配置，聚合子服务全部为Swagger2规范的文档
+      version: swagger2
