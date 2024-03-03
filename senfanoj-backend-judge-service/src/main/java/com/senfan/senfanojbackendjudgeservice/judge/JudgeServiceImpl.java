@@ -13,8 +13,10 @@ import com.senfan.senfanojbackendmodel.model.codesandbox.JudgeInfo;
 import com.senfan.senfanojbackendmodel.model.dto.question.JudgeCase;
 import com.senfan.senfanojbackendmodel.model.entity.Question;
 import com.senfan.senfanojbackendmodel.model.entity.QuestionSubmit;
+import com.senfan.senfanojbackendmodel.model.enums.JudgeInfoMessageEnum;
 import com.senfan.senfanojbackendmodel.model.enums.QuestionSubmitStatusEnum;
 import com.senfan.senfanojbackendserviceclient.service.QuestionFeignClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class JudgeServiceImpl implements JudgeService {
 
     @Resource
@@ -74,7 +77,21 @@ public class JudgeServiceImpl implements JudgeService {
                 .language(language)
                 .code(code)
                 .build();
-        ExecuteCodeResponse executeCodeResponse = codeSandBox.executeCode(executeCodeRequest);
+        ExecuteCodeResponse executeCodeResponse = null;
+        try {
+            executeCodeResponse = codeSandBox.executeCode(executeCodeRequest);
+        } catch (Exception e) {
+            log.info("执行代码沙箱失败",e);
+            QuestionSubmit questionSubmitOld = new QuestionSubmit();
+            JudgeInfo judgeInfo = new JudgeInfo();
+            judgeInfo.setMessage(JudgeInfoMessageEnum.COMPILE_ERROR.getValue());
+            String jsonStr = JSONUtil.toJsonStr(judgeInfo);
+            questionSubmitOld.setId(questionSubmitId);
+            questionSubmitOld.setJudgeInfo(jsonStr);
+            questionSubmitOld.setStatus(2);
+            questionFeignClient.updateQuestionSubmitById(questionSubmitOld);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,e.getMessage());
+        }
         List<String> outputList = executeCodeResponse.getOutputList();
         // 5)根据沙箱的执行结果，设置题目的判题状态和信息
         JudgeContext judgeContext = new JudgeContext();

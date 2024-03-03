@@ -9,5 +9,5 @@ public interface FileConstant {
     /**
      * todo 需替换配置
      */
-    String IMAGE_HOST = "http://127.0.0.1:8101/api/user/images";
+    String IMAGE_HOST = "http://127.0.0.1:8101/api/user/images/";
 }

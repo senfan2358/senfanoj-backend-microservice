@@ -1,7 +1,6 @@
-
 spring:
   application:
-    name: senfanoj-backend-judge-service
+    name: senfanoj-backend-question-service
   # ?? swagger3
   mvc:
     pathmatch:
@@ -14,15 +13,16 @@ spring:
   # ?????
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/senfanoj
+    url: jdbc:mysql://8.136.121.109:3306/senfanoj
     username: root
-    password: 123456
+    password: senfan@235
   # Redis ??
   redis:
     database: 1
-    host: 127.0.0.1
+    host: 8.136.121.109
     port: 6379
     timeout: 5000
+    password: senfan@235
   servlet:
     multipart:
       # ????
@@ -30,17 +30,17 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        server-addr: 8.136.121.109:8848
 #  rabbitmq:
-#    host: 127.0.0.1
-#    port: 9102
+#    host: 8.136.121.109
+#    port: 5672
 #    password: senfan235
 #    username: senfan@235
 server:
   address: 0.0.0.0
-  port: 8104
+  port: 8103
   servlet:
-    context-path: /api/judge
+    context-path: /api/question
     # cookie 30 ???
     session:
       cookie:

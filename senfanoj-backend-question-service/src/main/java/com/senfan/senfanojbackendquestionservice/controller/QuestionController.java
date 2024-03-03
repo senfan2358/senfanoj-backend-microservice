@@ -302,10 +302,12 @@ public class QuestionController {
                                                                          HttpServletRequest request) {
         long current = questionSubmitQueryRequest.getCurrent();
         long size = questionSubmitQueryRequest.getPageSize();
+        final User loginUser = userFeignClient.getLoginUser(request);
+        questionSubmitQueryRequest.setUserId(loginUser.getId());
         // 从数据库中查询原始的题目提交分页信息
         Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
                 questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
-        final User loginUser = userFeignClient.getLoginUser(request);
+
         // 返回脱敏信息
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }

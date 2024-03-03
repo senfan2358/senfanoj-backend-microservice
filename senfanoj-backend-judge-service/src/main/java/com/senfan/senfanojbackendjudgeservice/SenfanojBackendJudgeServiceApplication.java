@@ -1,7 +1,7 @@
 package com.senfan.senfanojbackendjudgeservice;
 
-import com.senfan.senfanojbackendjudgeservice.rabbitmq.InitRabbitMq;
-import org.mybatis.spring.annotation.MapperScan;
+// import com.senfan.senfanojbackendjudgeservice.rabbitmq.InitRabbitMq;
+// import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -20,7 +20,7 @@ public class SenfanojBackendJudgeServiceApplication {
 
     public static void main(String[] args) {
         // 初始化消息队列
-        InitRabbitMq.doInit();
+        // InitRabbitMq.doInit();
         SpringApplication.run(SenfanojBackendJudgeServiceApplication.class, args);
     }
 

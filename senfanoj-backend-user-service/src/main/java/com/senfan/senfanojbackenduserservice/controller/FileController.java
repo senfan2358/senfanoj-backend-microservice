@@ -12,6 +12,7 @@ import com.senfan.senfanojbackendmodel.model.enums.FileUploadBizEnum;
 import com.senfan.senfanojbackenduserservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +35,8 @@ public class FileController {
 
     @Resource
     private UserService userService;
-
+    @Value("${file.imagehost}")
+    private String IMAGE_HOST;
 
     /**
      * 文件上传
@@ -60,12 +62,10 @@ public class FileController {
         // String filepath = String.format("/%s/%s/%s", fileUploadBizEnum.getValue(), loginUser.getId(), filename);
         // 获取 Spring 应用程序的根目录路径
 
-        String imagePath = null;
-        try {
-            // 获取 Spring 应用程序的根目录路径
-            imagePath = ResourceUtils.getURL("classpath:").getPath() + "static/images/";
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "资源路径不存在");
+        String imagePath = "/project/senfanoj/images/";
+        File imgPath = new File(imagePath);
+        if (!imgPath.exists()){
+            imgPath.mkdirs();
         }
         File file = new File(imagePath + filename);
         try {
@@ -73,7 +73,7 @@ public class FileController {
             multipartFile.transferTo(file);
             // cosManager.putObject(filepath, file);
             // 返回可访问地址
-            return ResultUtils.success(FileConstant.IMAGE_HOST + filename);
+            return ResultUtils.success(IMAGE_HOST + filename);
         } catch (Exception e) {
             log.error("file upload error, filepath = " + filename, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");

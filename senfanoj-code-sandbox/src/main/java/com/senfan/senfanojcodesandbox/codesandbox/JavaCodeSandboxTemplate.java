@@ -2,6 +2,8 @@ package com.senfan.senfanojcodesandbox.codesandbox;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import com.senfan.senfanojbackendcommon.common.ErrorCode;
+import com.senfan.senfanojbackendcommon.exception.BusinessException;
 import com.senfan.senfanojcodesandbox.model.ExecuteCodeRequest;
 import com.senfan.senfanojcodesandbox.model.ExecuteCodeResponse;
 import com.senfan.senfanojcodesandbox.model.ExecuteMessage;
@@ -62,6 +64,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
      * @return
      */
     public File saveCodeToFile(String code) {
+        code = "import java.util.*;\n"+code;
         String userDir = System.getProperty("user.dir");
         String globalCodePathName = userDir + File.separator + GLOBAL_CODE_DIR_NAME;
         // 判断全局代码目录是否存在，没有则新建
@@ -88,12 +91,12 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
             Process compileProcess = Runtime.getRuntime().exec(compileCmd);
             ExecuteMessage executeMessage = ProcessUtils.runProcessAndGetMessage(compileProcess, "编译");
             if (executeMessage.getExitValue() != 0) {
+                log.error("编译错误:{}",executeMessage.getErrorMessage());
                 throw new RuntimeException("编译错误");
             }
             return executeMessage;
         } catch (Exception e) {
-//            return getErrorResponse(e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("编译错误");
         }
     }
 
@@ -117,7 +120,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
                 new Thread(() -> {
                     try {
                         Thread.sleep(TIME_OUT);
-                        System.out.println("超时了，中断");
+                        log.info("超时了，中断");
                         runProcess.destroy();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -144,6 +147,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
         List<String> outputList = new ArrayList<>();
         // 取用时最大值，便于判断是否超时
         long maxTime = 0;
+        long maxMemory = 0;
         for (ExecuteMessage executeMessage : executeMessageList) {
             String errorMessage = executeMessage.getErrorMessage();
             if (StrUtil.isNotBlank(errorMessage)) {
@@ -154,8 +158,12 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
             }
             outputList.add(executeMessage.getMessage());
             Long time = executeMessage.getTime();
+            Long memory = executeMessage.getMemory();
             if (time != null) {
                 maxTime = Math.max(maxTime, time);
+            }
+            if (memory != null){
+                maxMemory = Math.max(maxMemory,memory);
             }
         }
         // 正常运行完成
@@ -166,7 +174,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
         JudgeInfo judgeInfo = new JudgeInfo();
         judgeInfo.setTime(maxTime);
         // 要借助第三方库来获取内存占用，非常麻烦，此处不做实现
-//        judgeInfo.setMemory();
+        judgeInfo.setMemory(maxMemory);
         executeCodeResponse.setJudgeInfo(judgeInfo);
         return executeCodeResponse;
     }
@@ -181,7 +189,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
         if (userCodeFile.getParentFile() != null) {
             String userCodeParentPath = userCodeFile.getParentFile().getAbsolutePath();
             boolean del = FileUtil.del(userCodeParentPath);
-            System.out.println("删除" + (del ? "成功" : "失败"));
+            log.info("删除" + (del ? "成功" : "失败"));
             return del;
         }
         return true;

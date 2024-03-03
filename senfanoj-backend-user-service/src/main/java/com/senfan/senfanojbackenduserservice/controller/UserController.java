@@ -155,7 +155,6 @@ public class UserController {
 
     @PostMapping("/upload")
     public BaseResponse<Boolean> uploadAvatar(@RequestParam("file") MultipartFile file) {
-        System.out.println(file);
         return ResultUtils.success(true);
     }
 
@@ -282,6 +281,6 @@ public class UserController {
     public static void main(String[] args) {
         URL resource = UserController.class.getClass().getClassLoader().getResource("");
         String path = resource.getPath();
-        System.out.println(path);
+        log.info(path);
     }
 }

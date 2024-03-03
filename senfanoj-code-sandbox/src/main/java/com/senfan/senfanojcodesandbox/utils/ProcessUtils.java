@@ -2,6 +2,7 @@ package com.senfan.senfanojcodesandbox.utils;
 
 import cn.hutool.core.util.StrUtil;
 import com.senfan.senfanojcodesandbox.model.ExecuteMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * 进程工具类
  */
+@Slf4j
 public class ProcessUtils {
 
     /**
@@ -32,7 +34,7 @@ public class ProcessUtils {
             executeMessage.setExitValue(exitValue);
             // 正常退出
             if (exitValue == 0) {
-                System.out.println(opName + "成功");
+                log.info(opName + "成功");
                 // 分批获取进程的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
                 List<String> outputStrList = new ArrayList<>();
@@ -44,7 +46,7 @@ public class ProcessUtils {
                 executeMessage.setMessage(StringUtils.join(outputStrList, "\n"));
             } else {
                 // 异常退出
-                System.out.println(opName + "失败，错误码： " + exitValue);
+                log.info(opName + "失败，错误码： " + exitValue);
                 // 分批获取进程的正常输出
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(runProcess.getInputStream()));
                 List<String> outputStrList = new ArrayList<>();
