@@ -149,6 +149,7 @@ public abstract class JavaCodeSandboxTemplate implements CodeSandbox {
         long maxTime = 0;
         long maxMemory = 0;
         for (ExecuteMessage executeMessage : executeMessageList) {
+            executeMessage.setMessage(executeMessage.getMessage().trim());
             String errorMessage = executeMessage.getErrorMessage();
             if (StrUtil.isNotBlank(errorMessage)) {
                 executeCodeResponse.setMessage(errorMessage);

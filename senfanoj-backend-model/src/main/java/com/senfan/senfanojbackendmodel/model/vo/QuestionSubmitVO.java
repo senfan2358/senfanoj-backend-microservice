@@ -103,7 +103,7 @@ public class QuestionSubmitVO implements Serializable {
         QuestionSubmitVO questionSubmitVO = new QuestionSubmitVO();
         BeanUtils.copyProperties(questionSubmit, questionSubmitVO);
         String judgeInfoStr = questionSubmit.getJudgeInfo();
-        questionSubmitVO.setJudgeInfo(JSONUtil.toBean(judgeInfoStr,JudgeInfo.class));
+        questionSubmitVO.setJudgeInfo(JSONUtil.toBean(judgeInfoStr, JudgeInfo.class));
         return questionSubmitVO;
     }
 

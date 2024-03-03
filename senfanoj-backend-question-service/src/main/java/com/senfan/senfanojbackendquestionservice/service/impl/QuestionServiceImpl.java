@@ -1,5 +1,6 @@
 package com.senfan.senfanojbackendquestionservice.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -9,12 +10,16 @@ import com.senfan.senfanojbackendcommon.constant.CommonConstant;
 import com.senfan.senfanojbackendcommon.exception.BusinessException;
 import com.senfan.senfanojbackendcommon.exception.ThrowUtils;
 import com.senfan.senfanojbackendcommon.utils.SqlUtils;
+import com.senfan.senfanojbackendmodel.model.codesandbox.JudgeInfo;
 import com.senfan.senfanojbackendmodel.model.dto.question.QuestionQueryRequest;
 import com.senfan.senfanojbackendmodel.model.entity.Question;
+import com.senfan.senfanojbackendmodel.model.entity.QuestionSubmit;
 import com.senfan.senfanojbackendmodel.model.entity.User;
+import com.senfan.senfanojbackendmodel.model.enums.JudgeInfoMessageEnum;
 import com.senfan.senfanojbackendmodel.model.vo.QuestionVO;
 import com.senfan.senfanojbackendmodel.model.vo.UserVO;
 import com.senfan.senfanojbackendquestionservice.mapper.QuestionMapper;
+import com.senfan.senfanojbackendquestionservice.mapper.QuestionSubmitMapper;
 import com.senfan.senfanojbackendquestionservice.service.QuestionService;
 import com.senfan.senfanojbackendserviceclient.service.UserFeignClient;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +37,6 @@ import java.util.stream.Collectors;
 
 /**
  * 帖子服务实现
- *
  */
 @Service
 @Slf4j
@@ -42,10 +46,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private UserFeignClient userService;
-
+    @Resource
+    private QuestionSubmitMapper questionSubmitMapper;
 
     /**
      * 校验题目是否合法
+     *
      * @param question
      * @param add
      */
@@ -155,6 +161,20 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 user = userIdUserListMap.get(userId).get(0);
             }
             questionVO.setUserVO(userService.getUserVO(user));
+            QuestionSubmit questionSubmit = new QuestionSubmit();
+            questionSubmit.setUserId(userId);
+            questionSubmit.setQuestionId(question.getId());
+            List<QuestionSubmit> questionSubmits = questionSubmitMapper.selectList(new QueryWrapper<>(questionSubmit));
+            long acceptNum = questionSubmits.stream().filter(item -> {
+                String judgeInfoStr = item.getJudgeInfo();
+                JudgeInfo judgeInfo = JSONUtil.toBean(judgeInfoStr, JudgeInfo.class);
+                if (JudgeInfoMessageEnum.ACCEPTED.getValue().equals(judgeInfo.getMessage())) {
+                    return true;
+                }
+                return false;
+            }).count();
+            questionVO.setAcceptedNum((int) acceptNum);
+            questionVO.setSubmitNum(questionSubmits.size());
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);

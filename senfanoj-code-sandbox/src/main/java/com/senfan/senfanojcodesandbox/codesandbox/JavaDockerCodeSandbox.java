@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -139,9 +141,10 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
      * @param containerId
      * @return
      */
-    public List<ExecuteMessage> getResult(DockerClient dockerClient,List<String> inputList,String containerId){
+    public List<ExecuteMessage> getResult(DockerClient dockerClient, List<String> inputList, String containerId) {
         List<ExecuteMessage> executeMessageList = new ArrayList<>();
         for (String inputArgs : inputList) {
+            CompletableFuture<ExecuteMessage> future = new CompletableFuture<>();
             StopWatch stopWatch = new StopWatch();
             String[] inputArgsArray = inputArgs.split(" ");
             String[] cmdArray = ArrayUtil.append(new String[]{"java", "-cp", "/app", "Main"}, inputArgsArray);
@@ -151,20 +154,24 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
                     .withAttachStdin(true)
                     .withAttachStdout(true)
                     .exec();
-            log.info("创建执行命令：{}" ,execCreateCmdResponse.getRawValues());
+            log.info("创建执行命令：{}", execCreateCmdResponse.getRawValues());
 
-            ExecuteMessage executeMessage = new ExecuteMessage();
             final String[] message = {null};
             final String[] errorMessage = {null};
-            long time = 0L;
-            // 判断是否超时
-            final boolean[] timeout = {true};
+            final long[] time = {0L};
+            final long[] maxMemory = {0L};
+
             String execId = execCreateCmdResponse.getId();
             ExecStartResultCallback execStartResultCallback = new ExecStartResultCallback() {
                 @Override
                 public void onComplete() {
-                    // 如果执行完成，则表示没超时
-                    timeout[0] = false;
+                    // 如果执行完成，则设置 CompletableFuture 的结果
+                    ExecuteMessage executeMessage = new ExecuteMessage();
+                    executeMessage.setMessage(message[0]);
+                    executeMessage.setErrorMessage(errorMessage[0]);
+                    executeMessage.setTime(time[0]);
+                    executeMessage.setMemory(maxMemory[0]);
+                    future.complete(executeMessage);
                     super.onComplete();
                 }
 
@@ -176,18 +183,15 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
                         log.info("输出错误结果：{}", errorMessage[0]);
                     } else {
                         message[0] = new String(frame.getPayload());
-                        log.info("输出结果：{}",message[0]);
+                        log.info("输出结果：{}", message[0]);
                     }
                     super.onNext(frame);
                 }
             };
 
-            final long[] maxMemory = {0L};
-
             // 获取占用的内存
             StatsCmd statsCmd = dockerClient.statsCmd(containerId);
             ResultCallback<Statistics> statisticsResultCallback = statsCmd.exec(new ResultCallback<Statistics>() {
-
                 @Override
                 public void onNext(Statistics statistics) {
                     log.info("内存占用：{}", statistics.getMemoryStats().getUsage());
@@ -196,42 +200,37 @@ public class JavaDockerCodeSandbox extends JavaCodeSandboxTemplate {
 
                 @Override
                 public void close() throws IOException {
-
                 }
 
                 @Override
                 public void onStart(Closeable closeable) {
-
                 }
 
                 @Override
                 public void onError(Throwable throwable) {
-
                 }
 
                 @Override
                 public void onComplete() {
-
                 }
             });
             statsCmd.exec(statisticsResultCallback);
+
             try {
                 stopWatch.start();
                 dockerClient.execStartCmd(execId)
                         .exec(execStartResultCallback)
                         .awaitCompletion(TIME_OUT, TimeUnit.MICROSECONDS);
                 stopWatch.stop();
-                time = stopWatch.getLastTaskTimeMillis();
+                time[0] = stopWatch.getLastTaskTimeMillis();
                 statsCmd.close();
-            } catch (InterruptedException e) {
-                log.info("程序执行异常",e);
+                // 获取 CompletableFuture 的结果
+                ExecuteMessage executeMessage = future.get();
+                executeMessageList.add(executeMessage);
+            } catch (InterruptedException | ExecutionException e) {
+                log.info("程序执行异常", e);
                 throw new RuntimeException(e);
             }
-            executeMessage.setMessage(message[0]);
-            executeMessage.setErrorMessage(errorMessage[0]);
-            executeMessage.setTime(time);
-            executeMessage.setMemory(maxMemory[0]);
-            executeMessageList.add(executeMessage);
         }
         return executeMessageList;
     }
