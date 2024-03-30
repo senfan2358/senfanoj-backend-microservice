@@ -1,6 +1,7 @@
 
 package com.senfan.senfanojcodesandbox.controller;
 
+import com.senfan.senfanojbackendcommon.utils.SM2Utils;
 import com.senfan.senfanojcodesandbox.codesandbox.JavaDockerCodeSandbox;
 import com.senfan.senfanojcodesandbox.codesandbox.JavaNativeCodeSandbox;
 import com.senfan.senfanojcodesandbox.model.ExecuteCodeRequest;
@@ -22,7 +23,7 @@ public class MainController {
     // 定义鉴权请求头和密钥
     private static final String AUTH_REQUEST_HEADER = "auth";
 
-    private static final String AUTH_REQUEST_SECRET = "secretKey";
+    private static final String AUTH_REQUEST_PRIVATE_KEY = "84790929baa920b10555c4095764476229114cf89cf2d344778710286c9f9195";
 
     @Resource
     private JavaNativeCodeSandbox javaNativeCodeSandbox;
@@ -45,12 +46,13 @@ public class MainController {
                                     HttpServletResponse response) {
         // 基本的认证
         String authHeader = request.getHeader(AUTH_REQUEST_HEADER);
-        if (!AUTH_REQUEST_SECRET.equals(authHeader)) {
+        if (!SM2Utils.verify(AUTH_REQUEST_PRIVATE_KEY,"senfan235",authHeader)) {
             response.setStatus(403);
             return null;
         }
         if (executeCodeRequest == null) {
-            throw new RuntimeException("请求参数为空");
+            response.setStatus(400);
+            return null;
         }
         return javaNativeCodeSandbox.executeCode(executeCodeRequest);
     }

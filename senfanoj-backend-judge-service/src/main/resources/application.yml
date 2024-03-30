@@ -35,7 +35,7 @@ spring:
 #    host: 127.0.0.1
 #    port: 9102
 #    password: senfan235
-#    username: xxxxxxx
+#    username: senfan@235
 server:
   address: 0.0.0.0
   port: 8104

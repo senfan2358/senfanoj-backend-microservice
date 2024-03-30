@@ -153,6 +153,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
                 .collect(Collectors.groupingBy(User::getId));
         // 填充信息
+        // todo 这里代码写成了个人的题目通过率，应该改成所有人的题目通过率
         List<QuestionVO> questionVOList = questionList.stream().map(question -> {
             QuestionVO questionVO = QuestionVO.objToVo(question);
             Long userId = question.getUserId();

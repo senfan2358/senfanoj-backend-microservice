@@ -16,14 +16,14 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://8.136.121.109:3306/senfanoj
     username: root
-    password: xxxxxxx
+    password: senfan@235
   # Redis ??
   redis:
     database: 1
     host: 8.136.121.109
     port: 6379
     timeout: 5000
-    password: xxxxxxx
+    password: senfan@235
   servlet:
     multipart:
       # ????
@@ -36,7 +36,7 @@ spring:
 #    host: 8.136.121.109
 #    port: 9102
 #    password: senfan235
-#    username: xxxxxxx
+#    username: senfan@235
 server:
   address: 0.0.0.0
   port: 8104

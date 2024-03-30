@@ -16,5 +16,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
-
+    <dependencies>
+        <!-- BouncyCastle 依赖 -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.69</version> <!-- 或者替换为最新版本 -->
+        </dependency>
+    </dependencies>
 </project>

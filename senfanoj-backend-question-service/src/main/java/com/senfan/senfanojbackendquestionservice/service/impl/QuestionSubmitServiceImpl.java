@@ -17,6 +17,7 @@ import com.senfan.senfanojbackendmodel.model.enums.QuestionSubmitStatusEnum;
 import com.senfan.senfanojbackendmodel.model.vo.QuestionSubmitVO;
 import com.senfan.senfanojbackendquestionservice.mapper.QuestionSubmitMapper;
 // import com.senfan.senfanojbackendquestionservice.rabbitmq.MyMessageProducer;
+import com.senfan.senfanojbackendquestionservice.rabbitmq.MyMessageProducer;
 import com.senfan.senfanojbackendquestionservice.service.QuestionService;
 import com.senfan.senfanojbackendquestionservice.service.QuestionSubmitService;
 import com.senfan.senfanojbackendserviceclient.service.JudgeFeignClient;
@@ -44,8 +45,8 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     @Resource
     UserFeignClient userService;
 
-    // @Resource
-    // MyMessageProducer myMessageProducer;
+    @Resource
+    MyMessageProducer myMessageProducer;
     @Lazy
     @Resource
     JudgeFeignClient judgeService;
@@ -88,11 +89,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         }
         Long questionSubmitId = questionSubmit.getId();
         // 执行判题服务
-        // myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
+        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
 
-        CompletableFuture.runAsync(() -> {
-            judgeService.doJudge(questionSubmitId);
-        });
+        // CompletableFuture.runAsync(() -> {
+        //     judgeService.doJudge(questionSubmitId);
+        // });
         return questionSubmitId;
     }
 
